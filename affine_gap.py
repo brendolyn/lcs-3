@@ -29,32 +29,23 @@ def print_matrix(x, y, A):
         print "%5s" % (c),
     print
 
-    for j in xrange(len(A[0])):
-        print "%5s" % (y[j]),
-        for i in xrange(len(A)):
-            print "%5.0f" % (A[i][j]),
-        print
+    if type(A[0][0]) == float:
+        for j in xrange(len(A[0])):
+            print "%5s" % (y[j]),
+            for i in xrange(len(A)):
+                print "%5.0f" % (A[i][j]),
+            print
 
-class ScoreParam:
-    """Stores the parameters for an alignment scoring function"""
-    def __init__(self, match, mismatch, gap, gap_start=0):
-        self.gap_start = gap_start
-        self.gap = gap
-        self.match = match
-        self.mismatch = mismatch
+    else:
+        for j in xrange(len(A[0])):
+            print "%5s" % (y[j]),
+            for i in xrange(len(A)):
+                print "%5s" % (A[i][j]),
+            print
 
-    def matchchar(self, a,b):
-        """Return the score for aligning character a with b"""
-        assert len(a) == len(b) == 1
-        if a==b:
-            return self.match
-        else:
-            return self.mismatch
 
-    def __str__(self):
-        return "match = %d; mismatch = %d; gap_start = %d; gap_extend = %d" % (
-                self.match, self.mismatch, self.gap_start, self.gap
-        )
+
+
 
 def main(x, y, blosum62, gapopen_penalty, gapextension_penalty):
     M = make_matrix(len(x) + 1, len(y) + 1)
@@ -83,7 +74,8 @@ def main(x, y, blosum62, gapopen_penalty, gapextension_penalty):
     for i in xrange(1, len(x)+1):
         for j in xrange(1, len(y)+1):
 
-
+            xi = x[i-1]
+            yj = y[j-1]
             U[i][j] = max(
                     gapopen_penalty + M[i-1][j],
                     gapextension_penalty + U[i-1][j],
@@ -113,12 +105,22 @@ def main(x, y, blosum62, gapopen_penalty, gapextension_penalty):
                     U[i][j],
                     D[i][j]
             )
+
+            blosumscore = blosum62[x[i-1], y[j-1]]
             if M[i][j]== int(blosum62[x[i-1], y[j-1]]) + M[i-1][j-1]:
                 MB[i][j] = "\\"
-            elif M[i][j]==U[i][j]:
-                MB[i][j] = ">."
+                # if x[i-1] == 'R' and y[j-1]=='R' and x[i-2]=='G' and y[j-2]=='G':
+                #     print x[i]
+                #     print y[j]
+                #     print_matrix(x,y, MB)
+                #     print "something"
+
+                #print_matrix(x, y, MB)
             elif M[i][j]==D[i][j]:
                 MB[i][j] = "v."
+            elif M[i][j]==U[i][j]:
+                MB[i][j] = ">."
+
 
 
     opt = max(M[len(x)][len(y)], U[len(x)][len(y)], D[len(x)][len(y)])
@@ -170,6 +172,7 @@ def main(x, y, blosum62, gapopen_penalty, gapextension_penalty):
             strbuilder+=y[j-1]
             i-=1
             j-=1
+            matrixToUse = MB
             assert matrixToUse==MB, "shoulb be MB"
         elif matrixToUse[i][j] == "v":
             refbuilder+="-"
@@ -217,8 +220,8 @@ def main(x, y, blosum62, gapopen_penalty, gapextension_penalty):
 
 
 if __name__ == "__main__":
-    ref = "FTFVVCVRECCTFRSRPIHGMRICVVNKILHMMRVCPFKWEFQFLPRATRPAKNCGWPRAHAYRIDEHRQNDHWEGQRWMHP"
-    strtoalign = "FFFVVCVRQNDKFNIMPQCTFRSRRDTVFAQQSVSKRLQFLPRATRSAKNCGWPRAHAYRAAHWEGQRWTHP"
+    ref = "ATLHWCPTGDFEVFRSPACCLDHNSMQGASTKQRGNMQHTLNIHVSIRDKLVFRRPYRSMHNKRLSPFGHNYKLFS"
+    strtoalign = "ATLHWAPTGDFEVFWCHHRSTKNPTTQRIMCRGNMQHTLNRSMHNKRLSPFHHKYKLFS"
     #ref = "AACCTTGG"
     #strtoalign = "ACACTGTGA"
     i = 0
